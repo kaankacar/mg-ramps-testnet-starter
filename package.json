@@ -1,0 +1,20 @@
+{
+  "name": "mg-ramps-testnet-starter",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "MoneyGram Ramps testnet (sandbox) starter — SEP-10 + SEP-24 USDC on Stellar. Built for hackathon builders.",
+  "scripts": {
+    "auth": "tsx src/index.ts auth",
+    "deposit": "tsx src/index.ts deposit",
+    "withdraw": "tsx src/index.ts withdraw"
+  },
+  "dependencies": {
+    "@stellar/stellar-sdk": "^15.1.0"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "tsx": "^4.22.4",
+    "typescript": "^6.0.3"
+  }
+}
