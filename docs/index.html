@@ -3,66 +3,95 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>MoneyGram Ramps — Testnet Demo</title>
+<title>MoneyGram Testnet Wallet</title>
 <style>
-  :root { --bg:#0d1117; --panel:#161b22; --border:#30363d; --text:#e6edf3; --muted:#8b949e;
-          --red:#da291c; --green:#3fb950; --accent:#e3b341; }
-  * { box-sizing: border-box; }
-  body { margin:0; font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
-         background:var(--bg); color:var(--text); line-height:1.5; }
-  main { max-width: 760px; margin: 0 auto; padding: 2.5rem 1.25rem 4rem; }
-  h1 { font-size: 1.7rem; margin: 0 0 .35rem; }
-  .sub { color: var(--muted); margin: 0 0 1.25rem; }
-  .facts { display:flex; flex-wrap:wrap; gap:.5rem; margin-bottom:1.5rem; }
-  .facts span { background:var(--panel); border:1px solid var(--border); border-radius:999px;
-                padding:.25rem .7rem; font-size:.8rem; color:var(--muted); }
-  .row { display:flex; gap:.75rem; flex-wrap:wrap; margin-bottom:1rem; }
-  button { font:inherit; font-weight:600; cursor:pointer; border:none; border-radius:10px;
-           padding:.75rem 1.25rem; color:#fff; background:var(--red); }
-  button.secondary { background:var(--panel); border:1px solid var(--border); color:var(--text); }
-  button:disabled { opacity:.5; cursor:not-allowed; }
-  .cta { display:inline-block; margin:.25rem 0 1rem; background:var(--green); color:#04210d;
-         font-weight:700; text-decoration:none; padding:.7rem 1.1rem; border-radius:10px; }
-  pre#log { background:#010409; border:1px solid var(--border); border-radius:12px;
-            padding:1rem; min-height:220px; max-height:360px; overflow:auto;
-            font-size:.85rem; white-space:pre-wrap; word-break:break-word; margin:0; }
-  footer { margin-top:2rem; color:var(--muted); font-size:.82rem; }
+  :root { --bg:#0d1117; --panel:#161b22; --panel2:#1c2330; --border:#30363d; --text:#e6edf3; --muted:#8b949e;
+          --red:#da291c; --green:#3fb950; --accent:#e3b341; --blue:#58a6ff; }
+  * { box-sizing:border-box; }
+  body { margin:0; font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif; background:var(--bg); color:var(--text); line-height:1.5; }
+  main { max-width:680px; margin:0 auto; padding:2rem 1.1rem 4rem; }
+  h1 { font-size:1.45rem; margin:0 0 .2rem; }
+  .sub { color:var(--muted); margin:0 0 1.4rem; font-size:.92rem; }
+  .card { background:var(--panel); border:1px solid var(--border); border-radius:14px; padding:1.1rem 1.2rem; margin-bottom:1rem; }
+  .card h2 { font-size:.78rem; text-transform:uppercase; letter-spacing:.06em; color:var(--muted); margin:0 0 .7rem; }
+  .addr { font-family:ui-monospace,Menlo,monospace; font-size:.82rem; word-break:break-all; color:var(--text); }
+  .bal-row { display:flex; gap:1.5rem; margin:.2rem 0; }
+  .bal { font-size:1.6rem; font-weight:700; }
+  .bal small { font-size:.8rem; color:var(--muted); font-weight:500; display:block; }
+  .row { display:flex; gap:.6rem; flex-wrap:wrap; align-items:center; }
+  button { font:inherit; font-weight:600; cursor:pointer; border:none; border-radius:9px; padding:.6rem 1rem; color:#fff; background:var(--red); }
+  button.ghost { background:var(--panel2); border:1px solid var(--border); color:var(--text); }
+  button.green { background:var(--green); color:#04210d; }
+  button:disabled { opacity:.45; cursor:not-allowed; }
+  input { font:inherit; background:#010409; border:1px solid var(--border); color:var(--text); border-radius:9px; padding:.55rem .7rem; width:7rem; }
+  a { color:var(--blue); }
+  .pill { font-size:.72rem; padding:.12rem .5rem; border-radius:999px; border:1px solid var(--border); color:var(--muted); }
+  .tx { border-top:1px solid var(--border); padding:.6rem 0; font-size:.86rem; }
+  .tx:first-of-type { border-top:none; }
+  .tx .meta { color:var(--muted); font-size:.76rem; }
+  .status { font-weight:700; }
+  .status.completed { color:var(--green); } .status.error,.status.expired { color:var(--red); }
+  .status.incomplete,.status.pending_user_transfer_start { color:var(--accent); }
+  #toast { position:fixed; left:50%; bottom:1.2rem; transform:translateX(-50%); background:var(--panel2); border:1px solid var(--border); padding:.55rem .9rem; border-radius:9px; font-size:.85rem; opacity:0; transition:opacity .2s; pointer-events:none; max-width:90%; }
+  #toast.show { opacity:1; }
+  .warn { border-left:3px solid var(--red); background:var(--panel2); padding:.5rem .8rem; border-radius:0 8px 8px 0; font-size:.8rem; color:var(--muted); margin-bottom:1rem; }
+  .note { border-left:3px solid var(--accent); background:var(--panel2); padding:.5rem .8rem; border-radius:0 8px 8px 0; font-size:.8rem; color:var(--muted); margin-top:1rem; }
+  footer { color:var(--muted); font-size:.78rem; margin-top:1.5rem; }
   footer code { color:var(--accent); }
-  a { color:#58a6ff; }
-  .note { border-left:3px solid var(--accent); padding:.5rem .9rem; background:var(--panel);
-          border-radius:0 8px 8px 0; font-size:.85rem; color:var(--muted); margin:1rem 0 1.5rem; }
 </style>
 </head>
 <body>
 <main>
-  <h1>MoneyGram Ramps — Testnet Demo</h1>
-  <p class="sub">A full on-/off-ramp run against MoneyGram's <strong>sandbox</strong>, entirely in your browser. No backend, no install, no allowlisting.</p>
+  <h1>MoneyGram Testnet Wallet</h1>
+  <p class="sub">A working non-custodial wallet on Stellar testnet that cashes in/out of <strong>USDC</strong> via MoneyGram's sandbox — entirely in your browser.</p>
 
-  <div class="facts">
-    <span>Stellar testnet</span><span>asset: USDC</span><span>no allowlisting</span>
-    <span>cash leg simulated</span><span>SEP-10 + SEP-24</span>
+  <div class="warn"><strong>Testnet only.</strong> The key below is generated and stored in this browser's localStorage. Never put a real (mainnet) secret here.</div>
+
+  <div class="card">
+    <h2>Account</h2>
+    <div class="addr" id="addr">…</div>
+    <div class="row" style="margin-top:.7rem">
+      <button class="ghost" id="copyBtn">Copy address</button>
+      <button class="ghost" id="fundBtn">Fund (friendbot)</button>
+      <button class="ghost" id="trustBtn">Add USDC trustline</button>
+      <button class="ghost" id="newBtn">New wallet</button>
+    </div>
   </div>
 
-  <div class="row">
-    <button id="deposit">Run deposit (cash → USDC)</button>
-    <button id="withdraw" class="secondary">Run withdraw (USDC → cash)</button>
+  <div class="card">
+    <h2>Balances <span class="pill" id="net">testnet</span></h2>
+    <div class="bal-row">
+      <div><div class="bal" id="xlm">—</div><small>XLM</small></div>
+      <div><div class="bal" id="usdc">—</div><small>USDC</small></div>
+      <div style="margin-left:auto"><button class="ghost" id="refreshBtn">↻ Refresh</button></div>
+    </div>
   </div>
 
-  <div id="cta"></div>
-  <pre id="log">Click a button to run the flow against MoneyGram's testnet sandbox…</pre>
+  <div class="card">
+    <h2>Cash in / out (MoneyGram)</h2>
+    <div class="row" style="margin-bottom:.6rem">
+      <button class="green" id="depositBtn">Deposit (cash → USDC)</button>
+      <input id="depAmt" placeholder="amount" inputmode="decimal" />
+    </div>
+    <div class="row">
+      <button id="withdrawBtn">Withdraw (USDC → cash)</button>
+      <input id="witAmt" placeholder="amount" inputmode="decimal" />
+    </div>
+    <div class="note"><strong>Withdraw flow:</strong> opens MoneyGram's interactive UI; once you finish it, the wallet automatically sends the USDC on-chain to MoneyGram (watch the activity feed). Limits: deposit 15–950, withdraw 15–2500.</div>
+  </div>
 
-  <div class="note">
-    <strong>PHP / local currency:</strong> the on-chain asset is always USDC. Philippine Peso (or any
-    local currency) only appears at a physical MoneyGram location in <em>production</em>. On testnet the
-    cash leg is simulated — great for building &amp; demoing the integration, no real money moves.
+  <div class="card">
+    <h2>Activity</h2>
+    <div id="activity"><span class="meta" style="color:var(--muted)">No transactions yet.</span></div>
   </div>
 
   <footer>
-    Anchor <code>extmgxanchor.moneygram.com</code> · USDC issuer <code>GBBD47IF…FLA5</code> ·
-    limits deposit 15–950 / withdraw 15–2500 ·
-    source &amp; CLI: <a id="repo" href="#" target="_blank" rel="noopener">GitHub repo</a>
+    Anchor <code>extmgxanchor.moneygram.com</code> · on-chain asset always <code>USDC</code> ·
+    PHP (or any local currency) is fiat at the physical MoneyGram counter in production; on testnet the cash leg is simulated.
+    <br/>Source &amp; CLI: <a id="repo" href="#" target="_blank" rel="noopener">GitHub</a>
   </footer>
 </main>
+<div id="toast"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/@stellar/stellar-sdk@15/dist/stellar-sdk.min.js"></script>
 <script>
@@ -74,117 +103,158 @@
     sep24: "https://extmgxanchor.moneygram.com/stellarsepservice/sep24",
     usdcIssuer: "GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5",
   };
-  const { Keypair, TransactionBuilder, Networks, Operation, Asset, BASE_FEE, Horizon } = StellarSdk;
+  const { Keypair, TransactionBuilder, Networks, Operation, Asset, Memo, BASE_FEE, Horizon } = StellarSdk;
   const usdc = new Asset("USDC", CFG.usdcIssuer);
   const horizon = new Horizon.Server(CFG.horizon);
+  const TERMINAL = new Set(["completed", "refunded", "error", "expired"]);
 
-  const logEl = document.getElementById("log");
-  const ctaEl = document.getElementById("cta");
-  const btnDep = document.getElementById("deposit");
-  const btnWit = document.getElementById("withdraw");
-
-  let firstLog = true;
-  function log(msg) {
-    if (firstLog) { logEl.textContent = ""; firstLog = false; }
-    logEl.textContent += msg + "\n";
-    logEl.scrollTop = logEl.scrollHeight;
+  // ---------- persisted wallet identity ----------
+  function getKeypair() {
+    let s = localStorage.getItem("mg_wallet_secret");
+    if (!s) { const kp = Keypair.random(); localStorage.setItem("mg_wallet_secret", kp.secret()); s = kp.secret(); }
+    return Keypair.fromSecret(s);
   }
+  let kp = getKeypair();
 
-  async function ensureFunded(kp) {
-    let account;
-    try {
-      account = await horizon.loadAccount(kp.publicKey());
-    } catch {
-      log("   funding via friendbot…");
-      await fetch(`${CFG.friendbot}/?addr=${kp.publicKey()}`);
-      account = await horizon.loadAccount(kp.publicKey());
-    }
-    const hasTrust = account.balances.some(
-      (b) => b.asset_code === "USDC" && b.asset_issuer === CFG.usdcIssuer
-    );
-    if (!hasTrust) {
-      log("   adding USDC trustline…");
-      const tx = new TransactionBuilder(account, { fee: BASE_FEE, networkPassphrase: Networks.TESTNET })
-        .addOperation(Operation.changeTrust({ asset: usdc }))
-        .setTimeout(60)
-        .build();
-      tx.sign(kp);
-      await horizon.submitTransaction(tx);
-    }
-  }
+  // ---------- persisted transactions ----------
+  const loadTxs = () => { try { return JSON.parse(localStorage.getItem("mg_wallet_txs") || "[]"); } catch { return []; } };
+  const saveTxs = (txs) => localStorage.setItem("mg_wallet_txs", JSON.stringify(txs));
 
-  async function sep10(kp) {
+  // ---------- SEP-10 token cache ----------
+  let token = null, tokenExp = 0;
+  async function getToken() {
+    if (token && Date.now() < tokenExp - 60000) return token;
     const chal = await (await fetch(`${CFG.auth}?account=${kp.publicKey()}&home_domain=${CFG.home}`)).json();
     const tx = TransactionBuilder.fromXDR(chal.transaction, chal.network_passphrase);
     tx.sign(kp);
-    const res = await fetch(CFG.auth, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ transaction: tx.toXDR() }),
-    });
-    const { token } = await res.json();
-    if (!token) throw new Error("SEP-10 did not return a token");
+    const res = await (await fetch(CFG.auth, { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({ transaction: tx.toXDR() }) })).json();
+    if (!res.token) throw new Error("SEP-10 failed");
+    token = res.token; tokenExp = Date.now() + 23 * 3600 * 1000;
     return token;
   }
 
-  async function interactive(kind, token, account) {
+  // ---------- helpers ----------
+  const $ = (id) => document.getElementById(id);
+  function toast(msg) { const t = $("toast"); t.textContent = msg; t.classList.add("show"); clearTimeout(t._t); t._t = setTimeout(() => t.classList.remove("show"), 2600); }
+  function b64ToHex(b64) { const bin = atob(b64); let h = ""; for (let i = 0; i < bin.length; i++) h += bin.charCodeAt(i).toString(16).padStart(2, "0"); return h; }
+
+  async function loadAccountOrNull() { try { return await horizon.loadAccount(kp.publicKey()); } catch { return null; } }
+
+  async function refreshBalances() {
+    $("addr").textContent = kp.publicKey();
+    const acct = await loadAccountOrNull();
+    if (!acct) { $("xlm").textContent = "0"; $("usdc").textContent = "—"; return; }
+    const xlm = acct.balances.find((b) => b.asset_type === "native");
+    const u = acct.balances.find((b) => b.asset_code === "USDC" && b.asset_issuer === CFG.usdcIssuer);
+    $("xlm").textContent = xlm ? Number(xlm.balance).toFixed(2) : "0";
+    $("usdc").textContent = u ? Number(u.balance).toFixed(2) : "no trustline";
+  }
+
+  // ---------- setup actions ----------
+  async function fund() {
+    toast("Funding via friendbot…");
+    await fetch(`${CFG.friendbot}/?addr=${kp.publicKey()}`);
+    await refreshBalances(); toast("Funded.");
+  }
+  async function addTrustline() {
+    const acct = await loadAccountOrNull();
+    if (!acct) { toast("Fund the account first."); return; }
+    if (acct.balances.some((b) => b.asset_code === "USDC" && b.asset_issuer === CFG.usdcIssuer)) { toast("Trustline already exists."); return; }
+    const tx = new TransactionBuilder(acct, { fee: BASE_FEE, networkPassphrase: Networks.TESTNET })
+      .addOperation(Operation.changeTrust({ asset: usdc })).setTimeout(60).build();
+    tx.sign(kp);
+    await horizon.submitTransaction(tx);
+    await refreshBalances(); toast("USDC trustline added.");
+  }
+
+  // ---------- ramp actions ----------
+  async function startRamp(kind, amount) {
+    const tok = await getToken();
+    const body = { asset_code: "USDC", account: kp.publicKey() };
+    if (amount) body.amount = amount;
     const res = await fetch(`${CFG.sep24}/transactions/${kind}/interactive`, {
-      method: "POST",
-      headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
-      body: JSON.stringify({ asset_code: "USDC", account }),
+      method: "POST", headers: { Authorization: `Bearer ${tok}`, "Content-Type": "application/json" }, body: JSON.stringify(body),
     });
     const data = await res.json();
     if (!data.url) throw new Error("SEP-24 error: " + JSON.stringify(data));
-    return data;
+    const txs = loadTxs();
+    txs.unshift({ id: data.id, kind, status: "incomplete", paid: false, ts: Date.now() });
+    saveTxs(txs); renderActivity();
+    window.open(data.url, "_blank", "noopener");
+    toast(`${kind} started — completing in popup`);
   }
 
-  async function getTx(token, id) {
-    const d = await (await fetch(`${CFG.sep24}/transaction?id=${id}`, {
-      headers: { Authorization: `Bearer ${token}` },
-    })).json();
-    return d.transaction;
-  }
-
-  function setBusy(busy) { btnDep.disabled = busy; btnWit.disabled = busy; }
-
-  async function run(kind) {
-    firstLog = true; ctaEl.innerHTML = ""; setBusy(true);
-    try {
-      const kp = Keypair.random();
-      log(`1) fresh testnet account: ${kp.publicKey()}`);
-      await ensureFunded(kp);
-      log("   ✓ funded + USDC trustline");
-      log("2) SEP-10 authenticating with MoneyGram…");
-      const token = await sep10(kp);
-      log("   ✓ JWT acquired — no allowlisting required");
-      log(`3) SEP-24 ${kind} interactive request…`);
-      const { url, id } = await interactive(kind, token, kp.publicKey());
-      log(`   ✓ transaction ${id}`);
-      ctaEl.innerHTML = `<a class="cta" href="${url}" target="_blank" rel="noopener">Open MoneyGram ${kind} flow ↗</a>`;
-      log("4) interactive URL ready — click the green button to complete the simulated flow.");
-      log("5) polling status (~30s)…");
-      for (let i = 0; i < 6; i++) {
-        await new Promise((r) => setTimeout(r, 5000));
-        const tx = await getTx(token, id);
-        log(`   status: ${tx.status}`);
-        if (["completed", "refunded", "error", "expired"].includes(tx.status)) break;
-      }
-      log("✓ demo finished. Complete the flow in the popup to progress past 'incomplete'.");
-    } catch (e) {
-      log("✗ " + (e && e.message ? e.message : String(e)));
-    } finally {
-      setBusy(false);
+  // ---------- polling + auto withdraw payment ----------
+  async function sendWithdrawalPayment(remote) {
+    const acct = await horizon.loadAccount(kp.publicKey());
+    let memo;
+    if (remote.withdraw_memo && remote.withdraw_memo_type) {
+      if (remote.withdraw_memo_type === "hash") memo = Memo.hash(b64ToHex(remote.withdraw_memo));
+      else if (remote.withdraw_memo_type === "id") memo = Memo.id(remote.withdraw_memo);
+      else memo = Memo.text(remote.withdraw_memo);
     }
+    const builder = new TransactionBuilder(acct, { fee: BASE_FEE, networkPassphrase: Networks.TESTNET })
+      .addOperation(Operation.payment({ destination: remote.withdraw_anchor_account, asset: usdc, amount: remote.amount_in }))
+      .setTimeout(120);
+    if (memo) builder.addMemo(memo);
+    const tx = builder.build(); tx.sign(kp);
+    const r = await horizon.submitTransaction(tx);
+    return r.hash;
   }
 
-  btnDep.onclick = () => run("deposit");
-  btnWit.onclick = () => run("withdraw");
+  async function pollOnce() {
+    const txs = loadTxs();
+    const active = txs.filter((t) => !TERMINAL.has(t.status));
+    if (!active.length) return;
+    let tok;
+    try { tok = await getToken(); } catch { return; }
+    let changed = false, completedAny = false;
+    for (const t of active) {
+      try {
+        const d = await (await fetch(`${CFG.sep24}/transaction?id=${t.id}`, { headers: { Authorization: `Bearer ${tok}` } })).json();
+        const remote = d.transaction; if (!remote) continue;
+        if (remote.status !== t.status) { t.status = remote.status; changed = true; }
+        if (t.kind === "withdraw" && remote.status === "pending_user_transfer_start" && !t.paid) {
+          t.paid = true; saveTxs(txs);
+          toast("Anchor ready — sending USDC on-chain…");
+          try { t.hash = await sendWithdrawalPayment(remote); changed = true; toast("Withdrawal payment sent ✓"); }
+          catch (e) { t.error = e.message; changed = true; toast("Payment failed: " + e.message); }
+        }
+        if (TERMINAL.has(remote.status)) completedAny = true;
+      } catch {}
+    }
+    if (changed) { saveTxs(txs); renderActivity(); }
+    if (completedAny) refreshBalances();
+  }
 
-  // point the repo link at wherever this is hosted
-  document.getElementById("repo").href =
-    location.hostname.endsWith("github.io")
-      ? `https://github.com/${location.hostname.split(".")[0]}/${location.pathname.split("/")[1]}`
-      : "https://github.com/";
+  function renderActivity() {
+    const txs = loadTxs();
+    const el = $("activity");
+    if (!txs.length) { el.innerHTML = '<span class="meta" style="color:var(--muted)">No transactions yet.</span>'; return; }
+    el.innerHTML = txs.map((t) => `
+      <div class="tx">
+        <span style="text-transform:capitalize">${t.kind}</span> ·
+        <span class="status ${t.status}">${t.status}</span>
+        <div class="meta">id ${t.id}${t.hash ? ` · paid tx ${t.hash.slice(0,10)}…` : ""}${t.error ? ` · ${t.error}` : ""}</div>
+      </div>`).join("");
+  }
+
+  // ---------- wiring ----------
+  $("copyBtn").onclick = () => { navigator.clipboard.writeText(kp.publicKey()); toast("Address copied."); };
+  $("fundBtn").onclick = () => fund().catch((e) => toast(e.message));
+  $("trustBtn").onclick = () => addTrustline().catch((e) => toast(e.message));
+  $("newBtn").onclick = () => { if (confirm("Generate a new testnet wallet? This clears the current one.")) { localStorage.removeItem("mg_wallet_secret"); localStorage.removeItem("mg_wallet_txs"); kp = getKeypair(); token = null; renderActivity(); refreshBalances(); toast("New wallet created."); } };
+  $("refreshBtn").onclick = () => refreshBalances().catch((e) => toast(e.message));
+  $("depositBtn").onclick = () => startRamp("deposit", $("depAmt").value.trim() || undefined).catch((e) => toast(e.message));
+  $("withdrawBtn").onclick = () => startRamp("withdraw", $("witAmt").value.trim() || undefined).catch((e) => toast(e.message));
+  $("repo").href = location.hostname.endsWith("github.io")
+    ? `https://github.com/${location.hostname.split(".")[0]}/${location.pathname.split("/")[1]}` : "https://github.com/";
+
+  // ---------- boot ----------
+  renderActivity();
+  refreshBalances();
+  pollOnce();
+  setInterval(pollOnce, 5000);
 </script>
 </body>
 </html>
