@@ -4,7 +4,9 @@ A minimal, **runnable** starter that walks through a full MoneyGram Ramps
 **on-ramp (deposit)** and **off-ramp (withdraw)** on Stellar **testnet**, using USDC.
 Built so a hackathon builder can go from zero to a working sandbox transaction in a couple of minutes.
 
-**🔗 Live browser demo:** https://kaankacar.github.io/mg-ramps-testnet-starter/ — runs the entire flow client-side (no install, no backend, no allowlisting).
+**🔗 Live browser demo (no backend):** https://kaankacar.github.io/mg-ramps-testnet-starter/ — runs the entire flow client-side (no install, no backend, no allowlisting). Uses the permissive `extmgxanchor` sandbox.
+
+> There are **two** MoneyGram testnet sandboxes, and this repo supports both — see [Two sandboxes](#two-sandboxes-and-two-apps) below. The `extstellar` ("legacy", production-faithful) one **requires `client_domain`**, so it ships with a tiny co-sign backend (`src/proxy.ts`, deployable to Vercel).
 
 ## TL;DR — what this proves
 
@@ -18,6 +20,52 @@ Built so a hackathon builder can go from zero to a working sandbox transaction i
   point** in production. On testnet the entire cash leg is **simulated** — no real
   money, no real KYC. So a PH hackathon project demonstrates the *mechanism*; real
   pesos only move on mainnet at a real MoneyGram location.
+- ⚠️ **Withdraw is self-demonstrable on testnet; deposit is not.** In a **withdraw**
+  (USDC → cash) *your wallet* sends the USDC on-chain, so you see the whole thing
+  settle (verified: a 10 USDC payment to MoneyGram's withdraw account). In a
+  **deposit** (cash → USDC) *MoneyGram* sends the USDC, but only **after cash is
+  paid** at a store — and the sandbox has ~12 fixed test locations (none in the
+  Philippines) with completion simulated by MoneyGram's onboarding team. So a
+  deposit will sit at "go pay cash" and never credit on its own. This is expected,
+  not a bug; on mainnet the same deposit completes for real once cash is paid.
+
+## Two sandboxes (and two apps)
+
+MoneyGram runs two distinct testnet sandboxes. Same testnet USDC issuer, both send `CORS: *`, but they differ in one decisive way:
+
+| | `extmgxanchor` (newer) | `extstellar` (legacy, production-faithful) |
+|---|---|---|
+| Path | `/stellarsepservice` | `/stellaradapterservice` (same as mainnet) |
+| SEP-10 `client_domain` | **not required** — any friendbot account authenticates | **required** — rejects with `client_domain is required` |
+| Backend needed? | **No** — pure client-side | **Yes** — a server must co-sign the challenge |
+| App in this repo | `docs/index.html` (GitHub Pages) | `docs/legacy.html` (+ `src/proxy.ts` / Vercel function) |
+| Min amounts | deposit/withdraw 15 | deposit/withdraw 1 |
+
+The legacy sandbox mirrors production (`stellar.moneygram.com/stellaradapterservice`), so it's the better **rehearsal** for a real integration — but it needs the `client_domain` handshake, which is why it ships with a backend.
+
+### Running the legacy app locally
+
+```bash
+cp .env.example .env       # set CLIENT_DOMAIN_SIGNING_SECRET=S... (the secret of your
+                           # stellar.toml's SIGNING_KEY); CLIENT_DOMAIN=your.domain
+npm run proxy              # serves docs/ + co-signs at /api/sep10/challenge
+# open http://localhost:8765/legacy.html
+```
+
+The proxy does exactly **one** privileged thing: fetch MoneyGram's SEP-10 challenge with your `client_domain` and co-sign it with your signing key. The secret stays server-side (gitignored `.env`); the browser only adds the user's own account signature and then talks to MoneyGram directly.
+
+### Deploying the legacy app (Vercel)
+
+`docs/` is served statically and `api/sep10/challenge.js` becomes the co-sign function — same `/api/sep10/challenge` path as the local proxy, so the frontend is unchanged.
+
+```bash
+npm i -g vercel            # or use: npx vercel
+vercel login
+vercel env add CLIENT_DOMAIN_SIGNING_SECRET production   # paste the signing secret
+vercel --prod
+```
+
+Set `CLIENT_DOMAIN` (and optionally `MG_HOME` / `MG_AUTH`) as env vars too if you're not using the defaults. **Never commit the secret** — it lives only in Vercel's env. The deployed URL's `/` serves the legacy wallet.
 
 ## Requirements
 

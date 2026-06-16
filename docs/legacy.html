@@ -1,0 +1,268 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>MoneyGram Testnet Wallet — Legacy (client_domain)</title>
+<style>
+  :root { --bg:#0d1117; --panel:#161b22; --panel2:#1c2330; --border:#30363d; --text:#e6edf3; --muted:#8b949e;
+          --red:#da291c; --green:#3fb950; --accent:#e3b341; --blue:#58a6ff; }
+  * { box-sizing:border-box; }
+  body { margin:0; font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif; background:var(--bg); color:var(--text); line-height:1.5; }
+  main { max-width:680px; margin:0 auto; padding:2rem 1.1rem 4rem; }
+  h1 { font-size:1.45rem; margin:0 0 .2rem; }
+  .sub { color:var(--muted); margin:0 0 1.4rem; font-size:.92rem; }
+  .card { background:var(--panel); border:1px solid var(--border); border-radius:14px; padding:1.1rem 1.2rem; margin-bottom:1rem; }
+  .card h2 { font-size:.78rem; text-transform:uppercase; letter-spacing:.06em; color:var(--muted); margin:0 0 .7rem; }
+  .addr { font-family:ui-monospace,Menlo,monospace; font-size:.82rem; word-break:break-all; color:var(--text); }
+  .bal-row { display:flex; gap:1.5rem; margin:.2rem 0; }
+  .bal { font-size:1.6rem; font-weight:700; }
+  .bal small { font-size:.8rem; color:var(--muted); font-weight:500; display:block; }
+  .row { display:flex; gap:.6rem; flex-wrap:wrap; align-items:center; }
+  button { font:inherit; font-weight:600; cursor:pointer; border:none; border-radius:9px; padding:.6rem 1rem; color:#fff; background:var(--red); }
+  button.ghost { background:var(--panel2); border:1px solid var(--border); color:var(--text); }
+  button.green { background:var(--green); color:#04210d; }
+  button:disabled { opacity:.45; cursor:not-allowed; }
+  input { font:inherit; background:#010409; border:1px solid var(--border); color:var(--text); border-radius:9px; padding:.55rem .7rem; width:7rem; }
+  input.wide { width:100%; }
+  label.fld { display:block; font-size:.76rem; color:var(--muted); margin:.5rem 0 .2rem; }
+  a { color:var(--blue); }
+  .pill { font-size:.72rem; padding:.12rem .5rem; border-radius:999px; border:1px solid var(--border); color:var(--muted); }
+  .pill.ok { color:var(--green); border-color:var(--green); }
+  .pill.bad { color:var(--red); border-color:var(--red); }
+  .tx { border-top:1px solid var(--border); padding:.6rem 0; font-size:.86rem; }
+  .tx:first-of-type { border-top:none; }
+  .tx .meta { color:var(--muted); font-size:.76rem; }
+  .status { font-weight:700; }
+  .status.completed { color:var(--green); } .status.error,.status.expired { color:var(--red); }
+  .status.incomplete,.status.pending_user_transfer_start { color:var(--accent); }
+  #toast { position:fixed; left:50%; bottom:1.2rem; transform:translateX(-50%); background:var(--panel2); border:1px solid var(--border); padding:.55rem .9rem; border-radius:9px; font-size:.85rem; opacity:0; transition:opacity .2s; pointer-events:none; max-width:90%; }
+  #toast.show { opacity:1; }
+  .warn { border-left:3px solid var(--red); background:var(--panel2); padding:.5rem .8rem; border-radius:0 8px 8px 0; font-size:.8rem; color:var(--muted); margin-bottom:1rem; }
+  .note { border-left:3px solid var(--accent); background:var(--panel2); padding:.5rem .8rem; border-radius:0 8px 8px 0; font-size:.8rem; color:var(--muted); margin-top:1rem; }
+  .mono { font-family:ui-monospace,Menlo,monospace; }
+  footer { color:var(--muted); font-size:.78rem; margin-top:1.5rem; }
+  footer code { color:var(--accent); }
+</style>
+</head>
+<body>
+<main>
+  <h1>MoneyGram Testnet Wallet — Legacy</h1>
+  <p class="sub">Same wallet, but pointed at MoneyGram's <strong>legacy sandbox</strong> (<code class="mono">extstellar.moneygram.com</code>), which <strong>requires SEP-10 <code class="mono">client_domain</code></strong>. A small backend proxy fetches the challenge and co-signs it with the allowlisted domain's key — that secret stays server-side and never reaches this page.</p>
+
+  <div class="warn"><strong>Testnet only.</strong> The wallet key below is generated and stored in this browser's localStorage. The <code class="mono">client_domain</code> signing secret lives in the proxy's <code class="mono">.env</code> (gitignored), not here.</div>
+
+  <div class="card">
+    <h2>Account</h2>
+    <div class="addr" id="addr">…</div>
+    <div class="row" style="margin-top:.7rem">
+      <button class="ghost" id="copyBtn">Copy address</button>
+      <button class="ghost" id="fundBtn">Fund (friendbot)</button>
+      <button class="ghost" id="trustBtn">Add USDC trustline</button>
+      <button class="ghost" id="newBtn">New wallet</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Balances <span class="pill" id="net">testnet · legacy</span></h2>
+    <div class="bal-row">
+      <div><div class="bal" id="xlm">—</div><small>XLM</small></div>
+      <div><div class="bal" id="usdc">—</div><small>USDC</small></div>
+      <div style="margin-left:auto"><button class="ghost" id="refreshBtn">↻ Refresh</button></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Cash in / out (MoneyGram legacy)</h2>
+    <div class="row" style="margin-bottom:.6rem">
+      <button class="green" id="depositBtn">Deposit (cash → USDC)</button>
+      <input id="depAmt" placeholder="amount" inputmode="decimal" />
+    </div>
+    <div class="row">
+      <button id="withdrawBtn">Withdraw (USDC → cash)</button>
+      <input id="witAmt" placeholder="amount" inputmode="decimal" />
+    </div>
+    <div class="note"><strong>Auth:</strong> the backend proxy co-signs the SEP-10 challenge with the allowlisted <span class="mono">client_domain</span> key, your wallet adds its own signature, then it's exchanged for a JWT directly against <span class="mono">extstellar.moneygram.com</span>. Legacy limits: deposit 1–950, withdraw 1–2500.</div>
+  </div>
+
+  <div class="card">
+    <h2>Activity</h2>
+    <div id="activity"><span class="meta" style="color:var(--muted)">No transactions yet.</span></div>
+  </div>
+
+  <footer>
+    Anchor <code>extstellar.moneygram.com</code> (legacy <code>/stellaradapterservice</code>) · on-chain asset always <code>USDC</code> ·
+    requires <code>client_domain</code> co-signing. The permissive sandbox that needs no client_domain is <a href="./index.html">the main wallet</a>.
+    <br/>Source &amp; CLI: <a id="repo" href="#" target="_blank" rel="noopener">GitHub</a>
+  </footer>
+</main>
+<div id="toast"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@stellar/stellar-sdk@15/dist/stellar-sdk.min.js"></script>
+<script>
+  const CFG = {
+    horizon: "https://horizon-testnet.stellar.org",
+    friendbot: "https://friendbot.stellar.org",
+    home: "extstellar.moneygram.com",
+    auth: "https://extstellar.moneygram.com/stellaradapterservice/auth",
+    sep24: "https://extstellar.moneygram.com/stellaradapterservice/sep24",
+    usdcIssuer: "GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5",
+  };
+  const { Keypair, TransactionBuilder, Networks, Operation, Asset, Memo, BASE_FEE, Horizon } = StellarSdk;
+  const usdc = new Asset("USDC", CFG.usdcIssuer);
+  const horizon = new Horizon.Server(CFG.horizon);
+  const TERMINAL = new Set(["completed", "refunded", "error", "expired"]);
+
+  // ---------- persisted wallet identity ----------
+  function getKeypair() {
+    let s = localStorage.getItem("mg_wallet_secret");
+    if (!s) { const kp = Keypair.random(); localStorage.setItem("mg_wallet_secret", kp.secret()); s = kp.secret(); }
+    return Keypair.fromSecret(s);
+  }
+  let kp = getKeypair();
+
+  // ---------- persisted transactions ----------
+  const loadTxs = () => { try { return JSON.parse(localStorage.getItem("mg_wallet_txs_legacy") || "[]"); } catch { return []; } };
+  const saveTxs = (txs) => localStorage.setItem("mg_wallet_txs_legacy", JSON.stringify(txs));
+
+  // ---------- SEP-10 token cache (client_domain co-signed by the backend proxy) ----------
+  let token = null, tokenExp = 0;
+  async function getToken() {
+    if (token && Date.now() < tokenExp - 60000) return token;
+    // The proxy fetches the challenge from MoneyGram and co-signs it with the
+    // allowlisted client_domain key (kept server-side). We only add the account signature.
+    const chal = await (await fetch(`/api/sep10/challenge?account=${kp.publicKey()}`)).json();
+    if (!chal.transaction) throw new Error("challenge proxy failed: " + JSON.stringify(chal));
+    const tx = TransactionBuilder.fromXDR(chal.transaction, chal.network_passphrase);
+    tx.sign(kp);       // account proves control of the wallet
+    const res = await (await fetch(CFG.auth, { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({ transaction: tx.toXDR() }) })).json();
+    if (!res.token) throw new Error("SEP-10 failed: " + JSON.stringify(res));
+    token = res.token; tokenExp = Date.now() + 23 * 3600 * 1000;
+    return token;
+  }
+
+  // ---------- helpers ----------
+  const $ = (id) => document.getElementById(id);
+  function toast(msg) { const t = $("toast"); t.textContent = msg; t.classList.add("show"); clearTimeout(t._t); t._t = setTimeout(() => t.classList.remove("show"), 3200); }
+  function b64ToHex(b64) { const bin = atob(b64); let h = ""; for (let i = 0; i < bin.length; i++) h += bin.charCodeAt(i).toString(16).padStart(2, "0"); return h; }
+
+  async function loadAccountOrNull() { try { return await horizon.loadAccount(kp.publicKey()); } catch { return null; } }
+
+  async function refreshBalances() {
+    $("addr").textContent = kp.publicKey();
+    const acct = await loadAccountOrNull();
+    if (!acct) { $("xlm").textContent = "0"; $("usdc").textContent = "—"; return; }
+    const xlm = acct.balances.find((b) => b.asset_type === "native");
+    const u = acct.balances.find((b) => b.asset_code === "USDC" && b.asset_issuer === CFG.usdcIssuer);
+    $("xlm").textContent = xlm ? Number(xlm.balance).toFixed(2) : "0";
+    $("usdc").textContent = u ? Number(u.balance).toFixed(2) : "no trustline";
+  }
+
+  // ---------- setup actions ----------
+  async function fund() {
+    toast("Funding via friendbot…");
+    await fetch(`${CFG.friendbot}/?addr=${kp.publicKey()}`);
+    await refreshBalances(); toast("Funded.");
+  }
+  async function addTrustline() {
+    const acct = await loadAccountOrNull();
+    if (!acct) { toast("Fund the account first."); return; }
+    if (acct.balances.some((b) => b.asset_code === "USDC" && b.asset_issuer === CFG.usdcIssuer)) { toast("Trustline already exists."); return; }
+    const tx = new TransactionBuilder(acct, { fee: BASE_FEE, networkPassphrase: Networks.TESTNET })
+      .addOperation(Operation.changeTrust({ asset: usdc })).setTimeout(60).build();
+    tx.sign(kp);
+    await horizon.submitTransaction(tx);
+    await refreshBalances(); toast("USDC trustline added.");
+  }
+
+  // ---------- ramp actions ----------
+  async function startRamp(kind, amount) {
+    const tok = await getToken();
+    const body = { asset_code: "USDC", account: kp.publicKey() };
+    if (amount) body.amount = amount;
+    const res = await fetch(`${CFG.sep24}/transactions/${kind}/interactive`, {
+      method: "POST", headers: { Authorization: `Bearer ${tok}`, "Content-Type": "application/json" }, body: JSON.stringify(body),
+    });
+    const data = await res.json();
+    if (!data.url) throw new Error("SEP-24 error: " + JSON.stringify(data));
+    const txs = loadTxs();
+    txs.unshift({ id: data.id, kind, status: "incomplete", paid: false, ts: Date.now() });
+    saveTxs(txs); renderActivity();
+    window.open(data.url, "_blank", "noopener");
+    toast(`${kind} started — completing in popup`);
+  }
+
+  // ---------- polling + auto withdraw payment ----------
+  async function sendWithdrawalPayment(remote) {
+    const acct = await horizon.loadAccount(kp.publicKey());
+    let memo;
+    if (remote.withdraw_memo && remote.withdraw_memo_type) {
+      if (remote.withdraw_memo_type === "hash") memo = Memo.hash(b64ToHex(remote.withdraw_memo));
+      else if (remote.withdraw_memo_type === "id") memo = Memo.id(remote.withdraw_memo);
+      else memo = Memo.text(remote.withdraw_memo);
+    }
+    const builder = new TransactionBuilder(acct, { fee: BASE_FEE, networkPassphrase: Networks.TESTNET })
+      .addOperation(Operation.payment({ destination: remote.withdraw_anchor_account, asset: usdc, amount: remote.amount_in }))
+      .setTimeout(120);
+    if (memo) builder.addMemo(memo);
+    const tx = builder.build(); tx.sign(kp);
+    const r = await horizon.submitTransaction(tx);
+    return r.hash;
+  }
+
+  async function pollOnce() {
+    const txs = loadTxs();
+    const active = txs.filter((t) => !TERMINAL.has(t.status));
+    if (!active.length) return;
+    let tok;
+    try { tok = await getToken(); } catch { return; }
+    let changed = false, completedAny = false;
+    for (const t of active) {
+      try {
+        const d = await (await fetch(`${CFG.sep24}/transaction?id=${t.id}`, { headers: { Authorization: `Bearer ${tok}` } })).json();
+        const remote = d.transaction; if (!remote) continue;
+        if (remote.status !== t.status) { t.status = remote.status; changed = true; }
+        if (t.kind === "withdraw" && remote.status === "pending_user_transfer_start" && !t.paid) {
+          t.paid = true; saveTxs(txs);
+          toast("Anchor ready — sending USDC on-chain…");
+          try { t.hash = await sendWithdrawalPayment(remote); changed = true; toast("Withdrawal payment sent ✓"); }
+          catch (e) { t.error = e.message; changed = true; toast("Payment failed: " + e.message); }
+        }
+        if (TERMINAL.has(remote.status)) completedAny = true;
+      } catch {}
+    }
+    if (changed) { saveTxs(txs); renderActivity(); }
+    if (completedAny) refreshBalances();
+  }
+
+  function renderActivity() {
+    const txs = loadTxs();
+    const el = $("activity");
+    if (!txs.length) { el.innerHTML = '<span class="meta" style="color:var(--muted)">No transactions yet.</span>'; return; }
+    el.innerHTML = txs.map((t) => `
+      <div class="tx">
+        <span style="text-transform:capitalize">${t.kind}</span> ·
+        <span class="status ${t.status}">${t.status}</span>
+        <div class="meta">id ${t.id}${t.hash ? ` · paid tx ${t.hash.slice(0,10)}…` : ""}${t.error ? ` · ${t.error}` : ""}</div>
+      </div>`).join("");
+  }
+
+  // ---------- wiring ----------
+  $("copyBtn").onclick = () => { navigator.clipboard.writeText(kp.publicKey()); toast("Address copied."); };
+  $("fundBtn").onclick = () => fund().catch((e) => toast(e.message));
+  $("trustBtn").onclick = () => addTrustline().catch((e) => toast(e.message));
+  $("newBtn").onclick = () => { if (confirm("Generate a new testnet wallet? This clears the current one.")) { localStorage.removeItem("mg_wallet_secret"); localStorage.removeItem("mg_wallet_txs_legacy"); kp = getKeypair(); token = null; renderActivity(); refreshBalances(); toast("New wallet created."); } };
+  $("refreshBtn").onclick = () => refreshBalances().catch((e) => toast(e.message));
+  $("depositBtn").onclick = () => startRamp("deposit", $("depAmt").value.trim() || undefined).catch((e) => toast(e.message));
+  $("withdrawBtn").onclick = () => startRamp("withdraw", $("witAmt").value.trim() || undefined).catch((e) => toast(e.message));
+  $("repo").href = location.hostname.endsWith("github.io")
+    ? `https://github.com/${location.hostname.split(".")[0]}/${location.pathname.split("/")[1]}` : "https://github.com/";
+
+  // ---------- boot ----------
+  renderActivity();
+  refreshBalances();
+  pollOnce();
+  setInterval(pollOnce, 5000);
+</script>
+</body>
+</html>

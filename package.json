@@ -7,7 +7,8 @@
   "scripts": {
     "auth": "tsx src/index.ts auth",
     "deposit": "tsx src/index.ts deposit",
-    "withdraw": "tsx src/index.ts withdraw"
+    "withdraw": "tsx src/index.ts withdraw",
+    "proxy": "tsx src/proxy.ts"
   },
   "dependencies": {
     "@stellar/stellar-sdk": "^15.1.0"
