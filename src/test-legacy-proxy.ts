@@ -5,7 +5,7 @@
 
 import { Keypair, TransactionBuilder, Networks, Operation, Asset, BASE_FEE, Horizon } from "@stellar/stellar-sdk";
 
-const PROXY = "http://localhost:8765";
+const PROXY = process.env.PROXY_BASE || "http://localhost:8765";
 const MG_AUTH = "https://extstellar.moneygram.com/stellaradapterservice/auth";
 const SEP24 = "https://extstellar.moneygram.com/stellaradapterservice/sep24";
 const USDC = new Asset("USDC", "GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5");
